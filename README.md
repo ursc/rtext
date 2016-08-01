@@ -1,2 +1,2 @@
 # rtext
-![alt tag](https://github.com/yvolobuev/rtext/blob/master/screenshot.png)
+![alt tag](https://github.com/ursc/rtext/blob/master/screenshot.png)

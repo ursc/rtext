@@ -34,6 +34,11 @@
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.filesDataGridView = new System.Windows.Forms.DataGridView();
+            this.ColFile = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.ColExt = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.ColSize = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.ColLayouts = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.ColResult = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
@@ -49,11 +54,6 @@
             this.replaceTextBox = new System.Windows.Forms.WatermarkTextBox();
             this.replaceButton = new System.Windows.Forms.Button();
             this.folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
-            this.ColFile = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.ColExt = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.ColSize = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.ColLayouts = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.ColResult = new System.Windows.Forms.DataGridViewTextBoxColumn();
             ((System.ComponentModel.ISupportInitialize)(this.filesDataGridView)).BeginInit();
             this.flowLayoutPanel1.SuspendLayout();
             this.SuspendLayout();
@@ -62,8 +62,8 @@
             // 
             this.filesDataGridView.AllowUserToAddRows = false;
             this.filesDataGridView.AllowUserToResizeRows = false;
-            this.filesDataGridView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-            | System.Windows.Forms.AnchorStyles.Left)
+            this.filesDataGridView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.filesDataGridView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.filesDataGridView.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
@@ -92,6 +92,55 @@
             this.filesDataGridView.CellDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.FilesCellDoubleClick);
             this.filesDataGridView.UserDeletedRow += new System.Windows.Forms.DataGridViewRowEventHandler(this.FilesUserDeletedRow);
             this.filesDataGridView.MouseClick += new System.Windows.Forms.MouseEventHandler(this.FilesMouseClick);
+            // 
+            // ColFile
+            // 
+            this.ColFile.FillWeight = 500F;
+            this.ColFile.HeaderText = "Filename";
+            this.ColFile.Name = "ColFile";
+            this.ColFile.ReadOnly = true;
+            this.ColFile.ToolTipText = "Filename";
+            this.ColFile.Width = 500;
+            // 
+            // ColExt
+            // 
+            this.ColExt.FillWeight = 40F;
+            this.ColExt.HeaderText = "Ext";
+            this.ColExt.Name = "ColExt";
+            this.ColExt.ReadOnly = true;
+            this.ColExt.ToolTipText = "Ext";
+            this.ColExt.Width = 40;
+            // 
+            // ColSize
+            // 
+            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
+            this.ColSize.DefaultCellStyle = dataGridViewCellStyle1;
+            this.ColSize.FillWeight = 80F;
+            this.ColSize.HeaderText = "Size";
+            this.ColSize.Name = "ColSize";
+            this.ColSize.ReadOnly = true;
+            this.ColSize.ToolTipText = "Size";
+            this.ColSize.Width = 80;
+            // 
+            // ColLayouts
+            // 
+            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
+            this.ColLayouts.DefaultCellStyle = dataGridViewCellStyle2;
+            this.ColLayouts.FillWeight = 60F;
+            this.ColLayouts.HeaderText = "Layouts";
+            this.ColLayouts.Name = "ColLayouts";
+            this.ColLayouts.ReadOnly = true;
+            this.ColLayouts.ToolTipText = "Layouts";
+            this.ColLayouts.Width = 60;
+            // 
+            // ColResult
+            // 
+            this.ColResult.FillWeight = 200F;
+            this.ColResult.HeaderText = "Result";
+            this.ColResult.Name = "ColResult";
+            this.ColResult.ReadOnly = true;
+            this.ColResult.ToolTipText = "Result";
+            this.ColResult.Width = 200;
             // 
             // openFileDialog1
             // 
@@ -181,7 +230,6 @@
             // 
             // rxCheckBox
             // 
-            this.rxCheckBox.Enabled = false;
             this.rxCheckBox.Font = new System.Drawing.Font("Segoe UI", 9F);
             this.rxCheckBox.Location = new System.Drawing.Point(3, 113);
             this.rxCheckBox.Name = "rxCheckBox";
@@ -246,61 +294,12 @@
             this.replaceButton.TabIndex = 10;
             this.replaceButton.Text = "Replace";
             this.replaceButton.UseVisualStyleBackColor = true;
-            this.replaceButton.Click += new System.EventHandler(this.ReplaceClick);
+            this.replaceButton.Click += new System.EventHandler(this.FindClick);
             // 
             // folderBrowserDialog1
             // 
             this.folderBrowserDialog1.RootFolder = System.Environment.SpecialFolder.MyComputer;
             this.folderBrowserDialog1.ShowNewFolderButton = false;
-            // 
-            // ColFile
-            // 
-            this.ColFile.FillWeight = 500F;
-            this.ColFile.HeaderText = "Filename";
-            this.ColFile.Name = "ColFile";
-            this.ColFile.ReadOnly = true;
-            this.ColFile.ToolTipText = "Filename";
-            this.ColFile.Width = 500;
-            // 
-            // ColExt
-            // 
-            this.ColExt.FillWeight = 40F;
-            this.ColExt.HeaderText = "Ext";
-            this.ColExt.Name = "ColExt";
-            this.ColExt.ReadOnly = true;
-            this.ColExt.ToolTipText = "Ext";
-            this.ColExt.Width = 40;
-            // 
-            // ColSize
-            // 
-            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
-            this.ColSize.DefaultCellStyle = dataGridViewCellStyle1;
-            this.ColSize.FillWeight = 80F;
-            this.ColSize.HeaderText = "Size";
-            this.ColSize.Name = "ColSize";
-            this.ColSize.ReadOnly = true;
-            this.ColSize.ToolTipText = "Size";
-            this.ColSize.Width = 80;
-            // 
-            // ColLayouts
-            // 
-            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
-            this.ColLayouts.DefaultCellStyle = dataGridViewCellStyle2;
-            this.ColLayouts.FillWeight = 60F;
-            this.ColLayouts.HeaderText = "Layouts";
-            this.ColLayouts.Name = "ColLayouts";
-            this.ColLayouts.ReadOnly = true;
-            this.ColLayouts.ToolTipText = "Layouts";
-            this.ColLayouts.Width = 60;
-            // 
-            // ColResult
-            // 
-            this.ColResult.FillWeight = 200F;
-            this.ColResult.HeaderText = "Result";
-            this.ColResult.Name = "ColResult";
-            this.ColResult.ReadOnly = true;
-            this.ColResult.ToolTipText = "Result";
-            this.ColResult.Width = 200;
             // 
             // Form1
             // 

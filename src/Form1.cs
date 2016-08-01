@@ -186,7 +186,7 @@ namespace rtext
             return layouts;
         }
 
-        void Process(FindReplaceData data)
+        void Process(FindReplacer findReplacer)
         {
             if (IsFileOpened()) {
                 return;
@@ -198,123 +198,14 @@ namespace rtext
 
                 Application.DoEvents(); // .oOo.
 
-                data.Filename = row.Cells[0].Value.ToString();
-                var result = ProcessFile(data);
-                row.Cells["ColResult"].Value = data.Result;
-
-                SetCellsColor(row.Index, result, new[] { "ColResult" });
-            }
-        }
-
-        Result ProcessFile(FindReplaceData data)
-        {
-            string ext = Path.GetExtension(data.Filename).ToLower();
-            string prefix = data.Replace ? "replaced: " : "found: ";
-
-            using (Database acCurDb = new Database(false, true)) {
                 try {
-                    if (ext == "dxf") {
-                        acCurDb.DxfIn(data.Filename, Environment.GetEnvironmentVariable("TEMP") + "\\dxf.log");
-                    } else {
-                        acCurDb.ReadDwgFile(data.Filename, System.IO.FileShare.Read, true, "");
-                    }
-
-                    int processed = 0;
-                    using (var tr = acCurDb.TransactionManager.StartTransaction()) {
-                        var bt = (BlockTable)tr.GetObject(acCurDb.BlockTableId, OpenMode.ForRead, false);
-                        foreach (ObjectId objId in bt) {
-                            BlockTableRecord btr = (BlockTableRecord)tr.GetObject(objId, OpenMode.ForRead, false);
-                            if (btr != null) {
-                                if (btr.IsLayout) {
-                                    foreach (ObjectId objId2 in btr) {
-                                        processed += ProcessObjectId(tr, objId2, data);
-                                    }
-                                }
-                            }
-                        }
-
-                        if (data.Replace && processed > 0) {
-                            tr.Commit();
-                        } else {
-                            tr.Abort();
-                        }
-                    }
-                    data.Result = prefix + processed.ToString();
-
-                    if (data.Replace && processed > 0) {
-                        if (ext == "dxf") {
-                            acCurDb.DxfOut(data.Filename, 16, acCurDb.OriginalFileVersion);
-                        } else {
-                            acCurDb.SaveAs(data.Filename, acCurDb.OriginalFileVersion);
-                        }
-                    }
-                    acCurDb.Dispose();
-                } catch (System.Exception ex) {
-                    data.Result = ex.Message;
-                    return Result.ERROR;
+                    row.Cells["ColResult"].Value = findReplacer.ProcessFile(row.Cells[0].Value.ToString());
+                    SetCellsColor(row.Index, Result.OK, new[] { "ColResult" });
+                } catch (Exception ex) {
+                    row.Cells["ColResult"].Value = ex.Message;
+                    SetCellsColor(row.Index, Result.ERROR, new[] { "ColResult" });
                 }
             }
-            return Result.OK;
-        }
-
-        int ProcessObjectId(Transaction tr, ObjectId objId, FindReplaceData data)
-        {
-            int processed = 0;
-            var openMode = data.Replace ? OpenMode.ForWrite : OpenMode.ForRead;
-            var ent = tr.GetObject(objId, openMode, false);
-            var entType = ent.GetType();
-
-            var comparison = data.IsCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
-
-            if (entType == typeof(Table)) {
-                var tbl = ent as Table;
-                if (tbl.NumRows > 0 && tbl.NumColumns > 0) {
-                    for (var r = 0; r < tbl.NumRows; r++) {
-                        for (var c = 0; c < tbl.NumColumns; c++) {
-                            var s = tbl.GetTextString(r, c, 0, FormatOption.FormatOptionNone);
-                            if (s.IndexOf(data.FindWhat, comparison) > -1) {
-                                if (data.Replace) {
-                                    tbl.SetTextString(r, c, s.Replace(data.FindWhat, data.ReplaceWith));
-                                }
-                                processed++;
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (entType == typeof(MText)) {
-                var text = ent as MText;
-                var s = text.Contents;
-                if (s.IndexOf(data.FindWhat, comparison) > -1) {
-                    if (data.Replace) {
-                        text.Contents = s.Replace(data.FindWhat, data.ReplaceWith);
-                    }
-                    processed++;
-                }
-            }
-
-            if (entType == typeof(DBText)) {
-                var text = ent as DBText;
-                var s = text.TextString;
-                if (s.IndexOf(data.FindWhat, comparison) > -1) {
-                    if (data.Replace) {
-                        text.TextString = s.Replace(data.FindWhat, data.ReplaceWith);
-                    }
-                    processed++;
-                }
-            }
-
-            if (entType == typeof(BlockReference)) {
-                var br = ent as BlockReference;
-                var brId = br.IsDynamicBlock ? br.DynamicBlockTableRecord : br.BlockTableRecord;
-                var btr = (BlockTableRecord)tr.GetObject(brId, OpenMode.ForRead, false);
-                foreach (ObjectId objId2 in btr) {
-                    ProcessObjectId(tr, objId2, data);
-                }
-            }
-
-            return processed;
         }
 
         #region events
@@ -404,16 +295,14 @@ namespace rtext
         void FindClick(object sender, EventArgs e)
         {
             flowLayoutPanel1.Enabled = false;
-            var data = new FindReplaceData(caseCheckBox.Checked, rxCheckBox.Checked, findTextBox.Text, replaceTextBox.Text, false);
-            Process(data);
-            flowLayoutPanel1.Enabled = true;
-        }
-
-        void ReplaceClick(object sender, EventArgs e)
-        {
-            flowLayoutPanel1.Enabled = false;
-            var data = new FindReplaceData(caseCheckBox.Checked, rxCheckBox.Checked, findTextBox.Text, replaceTextBox.Text, true);
-            Process(data);
+            bool replace = sender == replaceButton;
+            try {
+                var findReplacer = new FindReplacer(caseCheckBox.Checked, rxCheckBox.Checked, findTextBox.Text, replaceTextBox.Text, replace);
+                Process(findReplacer);
+            } catch (Exception ex) {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            
             flowLayoutPanel1.Enabled = true;
         }
         #endregion
