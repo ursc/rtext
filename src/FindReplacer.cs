@@ -73,7 +73,7 @@ namespace rtext
             return sb.ToString();
         }
 
-        public string ProcessFile(string filename)
+        public string ProcessFile(string filename, string password)
         {
             int processed = 0;
             string ext = Path.GetExtension(filename).ToLower();
@@ -83,7 +83,7 @@ namespace rtext
                     if (ext == "dxf") {
                         acCurDb.DxfIn(filename, Environment.GetEnvironmentVariable("TEMP") + "\\dxf.log");
                     } else {
-                        acCurDb.ReadDwgFile(filename, System.IO.FileShare.Read, true, "");
+                        acCurDb.ReadDwgFile(filename, System.IO.FileShare.Read, true, password);
                     }
 
                     using (var tr = acCurDb.TransactionManager.StartTransaction()) {

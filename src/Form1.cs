@@ -39,6 +39,7 @@ namespace rtext
         readonly Font btnFontNormal;
         readonly string[] allowExtensions;
         readonly Dictionary<Result, CellColor> cellColors;
+        string password;
         #endregion
 
         public Form1()
@@ -54,6 +55,7 @@ namespace rtext
                 { Result.ERROR,   new CellColor(0xFFADAD, 0xFF8C8C) },
                 { Result.CHECK,   new CellColor(0xE8FFFF, 0xD1FFFF) },
             };
+            password = string.Empty;
 
             filesDataGridView.DefaultCellStyle.BackColor = cellColors[Result.OK].BackColor;
             filesDataGridView.DefaultCellStyle.SelectionBackColor = cellColors[Result.OK].SelectionBackColor;
@@ -157,31 +159,48 @@ namespace rtext
             int layouts = 0;
             string ext = Path.GetExtension(filename).ToLower();
 
-            using (Database acCurDb = new Database(false, true)) {
-                try {
-                    if (ext == "dxf") {
-                        acCurDb.DxfIn(filename, Environment.GetEnvironmentVariable("TEMP") + "\\dxf.log");
-                    } else {
-                        acCurDb.ReadDwgFile(filename, System.IO.FileShare.Read, true, "");
-                    }
+            while(true) {
+	            using (Database acCurDb = new Database(false, true)) {
+	                try {
+	                    if (ext == "dxf") {
+	                        acCurDb.DxfIn(filename, Environment.GetEnvironmentVariable("TEMP") + "\\dxf.log");
+	                    } else {
+                        	acCurDb.ReadDwgFile(filename, System.IO.FileShare.Read, true, password);
+	                    }
+	
+	                    using (var tr = acCurDb.TransactionManager.StartTransaction()) {
+	                        var bt = (BlockTable)tr.GetObject(acCurDb.BlockTableId, OpenMode.ForRead, false);
+	                        foreach (ObjectId objId in bt) {
+	                            BlockTableRecord btr = (BlockTableRecord)tr.GetObject(objId, OpenMode.ForRead, false);
+	                            if (btr != null) {
+	                                if (btr.IsLayout) {
+	                                    layouts++;
+	                                }
+	                            }
+	                        }
+	                        tr.Abort();
+	                    }
+	
+	                    acCurDb.Dispose();
 
-                    using (var tr = acCurDb.TransactionManager.StartTransaction()) {
-                        var bt = (BlockTable)tr.GetObject(acCurDb.BlockTableId, OpenMode.ForRead, false);
-                        foreach (ObjectId objId in bt) {
-                            BlockTableRecord btr = (BlockTableRecord)tr.GetObject(objId, OpenMode.ForRead, false);
-                            if (btr != null) {
-                                if (btr.IsLayout) {
-                                    layouts++;
-                                }
-                            }
-                        }
-                        tr.Abort();
-                    }
-
-                    acCurDb.Dispose();
-                } catch {
-                    layouts = -1;
-                }
+	                    break;
+        			} catch (Autodesk.AutoCAD.Runtime.Exception ex) {
+            			layouts = -1;
+        				if (ex.ErrorStatus != Autodesk.AutoCAD.Runtime.ErrorStatus.SecErrorDecryptingData) {
+        					break;
+        				}
+    					PasswordForm f = new PasswordForm();
+    					f.Text = Path.GetFileName(filename);
+    					f.textBoxPassword.Text = password;
+    					if (f.ShowDialog() != DialogResult.OK) {
+    						break;
+    					}
+    					File.AppendAllText(@"c:\art.log", "3: " + ex.ToString() + "\n");
+    					password = f.textBoxPassword.Text;
+	            	} catch {
+	                    layouts = -1;
+	                }
+	            }
             }
             return layouts;
         }
@@ -199,7 +218,7 @@ namespace rtext
                 Application.DoEvents(); // .oOo.
 
                 try {
-                    row.Cells["ColResult"].Value = findReplacer.ProcessFile(row.Cells[0].Value.ToString());
+                    row.Cells["ColResult"].Value = findReplacer.ProcessFile(row.Cells[0].Value.ToString(), password);
                     SetCellsColor(row.Index, Result.OK, new[] { "ColResult" });
                 } catch (Exception ex) {
                     row.Cells["ColResult"].Value = ex.Message;
